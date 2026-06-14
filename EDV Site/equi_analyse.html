@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Equi Analyse — Cross-Country Clip Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5ede0;
+  --bg-mid:#ede3d2;
+  --bg-surface:#fff9f2;
+  --accent:#a06030;
+  --accent-muted:#7a4820;
+  --accent-pale:rgba(160,96,48,.10);
+  --accent-border:rgba(160,96,48,.22);
+  --warm-bright:#7a4820;
+  --dust:#8a7060;
+  --fog:rgba(0,0,0,.04);
+  --border:rgba(0,0,0,.09);
+  --text:rgba(20,10,2,.92);
+  --text-mid:rgba(20,10,2,.62);
+  --text-faint:rgba(20,10,2,.40);
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.65;font-size:15px;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+/* Nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(245,237,224,.97);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,0,0,.1);height:58px;padding:0 32px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-mark{width:30px;height:30px;border-radius:6px;border:1.5px solid var(--accent-border);display:flex;align-items:center;justify-content:center}
+.nav-name{font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--text-mid)}
+.nav-name em{color:var(--accent);font-style:normal}
+.nav-product{font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);padding:5px 14px;border:1px solid var(--accent-border);border-radius:999px}
+.nav-right{display:flex;align-items:center;gap:20px}
+.nav-link{font-size:12px;color:var(--text-faint);text-decoration:none;letter-spacing:.04em;transition:color .2s}
+.nav-link:hover{color:var(--accent)}
+.nav-free{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--accent);padding:4px 10px;border-radius:999px}
+/* Views */
+.view{display:none;min-height:100vh}.view.active{display:block}
+/* Shared */
+.btn-primary{background:var(--accent);color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:.05em;padding:13px 26px;border-radius:999px;border:none;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{background:var(--warm-bright)}
+.btn-primary:disabled{background:rgba(200,149,106,.25);color:rgba(255,255,255,.3);cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--text-mid);font-family:var(--sans);font-size:13px;padding:12px 20px;border-radius:999px;border:1px solid var(--border);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-ghost:hover{border-color:var(--accent-border);color:var(--accent)}
+.card{background:var(--bg-surface);border:1px solid var(--border);border-radius:16px}
+.eyebrow{font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.eyebrow::before{content:'';width:20px;height:1px;background:var(--accent-muted)}
+.skel{background:linear-gradient(90deg,rgba(0,0,0,.03) 0%,rgba(160,96,48,.08) 50%,rgba(0,0,0,.03) 100%);background-size:200% 100%;animation:shimmer 1.6s infinite;border-radius:6px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.toast{position:fixed;bottom:28px;right:28px;z-index:999;background:var(--bg-surface);border:1px solid var(--accent-border);border-radius:12px;padding:14px 20px;font-size:13px;color:var(--text);display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(6px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0}
+canvas#cc{display:none}
+/* ── LANDING ── */
+#view-landing{padding-top:58px}
+.landing-wrap{max-width:1100px;margin:0 auto;padding:64px 40px;display:grid;grid-template-columns:1fr 440px;gap:80px;align-items:start;min-height:calc(100vh - 58px)}
+.landing-headline{font-family:var(--serif);font-size:clamp(42px,5.5vw,66px);font-weight:400;line-height:1.06;color:var(--text);margin-bottom:18px}
+.landing-headline em{color:var(--accent);font-style:italic}
+.landing-sub{font-size:17px;font-weight:300;color:var(--text-mid);line-height:1.82;max-width:500px;margin-bottom:36px}
+.free-banner{background:var(--accent-pale);border:1px solid var(--accent-border);border-radius:14px;padding:18px 22px;margin-bottom:36px}
+.free-badge{font-family:var(--serif);font-size:20px;font-weight:400;color:var(--accent);margin-bottom:4px}
+.free-desc{font-size:13px;font-weight:300;color:var(--text-mid);line-height:1.55}
+.free-desc strong{color:var(--text);font-weight:500}
+.value-list{display:flex;flex-direction:column;gap:10px}
+.value-item{display:flex;align-items:flex-start;gap:12px;font-size:14px;font-weight:300;color:var(--text-mid);line-height:1.5}
+.v-dot{width:18px;height:18px;border-radius:50%;background:var(--accent-pale);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.v-dot svg{color:var(--accent)}
+.upload-card{padding:36px}
+.upload-zone{position:relative;display:block;border:1.5px dashed var(--accent-border);border-radius:12px;padding:32px 28px;text-align:center;cursor:pointer;transition:all .25s;background:var(--accent-pale);margin-bottom:24px;user-select:none}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(160,96,48,.16)}
+.upload-icon{width:44px;height:44px;background:rgba(200,149,106,.18);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.upload-label{font-family:var(--serif);font-size:19px;color:var(--text);margin-bottom:4px}
+.upload-hint{font-size:11px;color:var(--text-faint);letter-spacing:.04em}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.meta-field{display:flex;flex-direction:column;gap:5px}
+.meta-field.full{grid-column:1/-1}
+.meta-label{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint)}
+.meta-input,.meta-select{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 13px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.meta-input::placeholder{color:var(--text-faint)}
+.meta-input:focus,.meta-select:focus{border-color:var(--accent-border)}
+.meta-select option{background:#fff}
+.upload-submit{width:100%;justify-content:center;margin-bottom:12px}
+.history-link{text-align:center;font-size:12px;color:var(--text-faint)}
+.history-link a{color:var(--accent);text-decoration:none}
+/* ── PAYMENT ── */
+#view-payment{padding-top:58px;display:flex;align-items:center;justify-content:center;min-height:100vh}
+.payment-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:24px;padding:52px 48px;max-width:460px;width:100%;margin:24px;text-align:center}
+.payment-icon{width:52px;height:52px;border-radius:12px;background:var(--accent-pale);border:1px solid var(--accent-border);margin:0 auto 22px;display:flex;align-items:center;justify-content:center}
+.payment-title{font-family:var(--serif);font-size:30px;font-weight:400;color:var(--text);margin-bottom:8px;line-height:1.2}
+.payment-title em{color:var(--accent);font-style:italic}
+.payment-sub{font-size:14px;font-weight:300;color:var(--text-mid);line-height:1.7;margin-bottom:28px}
+.payment-price{display:flex;align-items:baseline;justify-content:center;gap:4px;margin-bottom:28px}
+.payment-price .amount{font-family:var(--serif);font-size:52px;color:var(--accent);line-height:1}
+.payment-price .cur{font-size:22px;color:var(--accent);align-self:flex-start;padding-top:8px}
+.payment-price .per{font-size:13px;color:var(--text-faint);align-self:flex-end;padding-bottom:4px}
+.payment-items{text-align:left;border-top:1px solid var(--border);padding-top:20px;margin-bottom:24px}
+.payment-item-lbl{font-size:10px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--text-faint);margin-bottom:12px}
+.pay-item{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:13px;font-weight:300;color:var(--text-mid)}
+.pay-item svg{color:var(--accent);flex-shrink:0}
+.pay-email-lbl{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);display:block;margin-bottom:7px;text-align:left}
+.pay-email-input{width:100%;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 15px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;transition:border-color .2s;margin-bottom:16px}
+.pay-email-input::placeholder{color:var(--text-faint)}
+.pay-email-input:focus{border-color:var(--accent-border)}
+.pay-btn{width:100%;justify-content:center;margin-bottom:12px}
+.pay-note{font-size:11px;color:var(--text-faint);display:flex;align-items:center;justify-content:center;gap:5px}
+.demo-link{display:block;margin-top:16px;font-size:12px;color:var(--text-faint);cursor:pointer;text-align:center}
+.demo-link:hover{color:var(--text-mid)}
+/* ── ANALYSIS ── */
+#view-analysis{padding-top:58px}
+.analysis-wrap{max-width:1200px;margin:0 auto;padding:32px;display:grid;grid-template-columns:1fr 400px;gap:28px;align-items:start}
+.video-card{background:#111;border-radius:14px;overflow:hidden;position:sticky;top:74px}
+.video-el{width:100%;display:block;max-height:460px;object-fit:contain;background:#000}
+.frame-strip{padding:12px 16px;background:rgba(0,0,0,.25);display:flex;gap:8px;overflow-x:auto;min-height:60px;align-items:center}
+.frame-strip::-webkit-scrollbar{height:3px}
+.frame-strip::-webkit-scrollbar-thumb{background:rgba(200,149,106,.3);border-radius:3px}
+.frame-thumb{width:62px;height:42px;border-radius:6px;object-fit:cover;border:2px solid transparent;cursor:pointer;flex-shrink:0;transition:border-color .2s}
+.frame-thumb.active{border-color:var(--accent)}
+.frame-add{width:62px;height:42px;border-radius:6px;flex-shrink:0;border:1.5px dashed rgba(160,96,48,.4);background:rgba(160,96,48,.08);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:20px;cursor:pointer;transition:all .2s}
+.frame-add:hover{border-color:var(--accent);background:rgba(200,149,106,.2)}
+.video-controls{padding:14px 18px;background:rgba(0,0,0,.2);display:flex;flex-direction:column;gap:10px}
+.scrubber{width:100%;height:3px;border-radius:3px;background:rgba(255,255,255,.09);-webkit-appearance:none;cursor:pointer;outline:none;accent-color:var(--accent)}
+.scrubber::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer}
+.time-row{display:flex;justify-content:space-between}
+.vtime{font-size:11px;color:rgba(255,255,255,.45);font-variant-numeric:tabular-nums}
+.vbtn-row{display:flex;align-items:center;gap:8px}
+.vbtn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:9px 14px;color:rgba(255,255,255,.75);font-family:var(--sans);font-size:12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;min-height:40px;touch-action:manipulation}
+.vbtn:hover{background:rgba(255,255,255,.2);color:#fff}
+.vbtn.accent{background:var(--accent);border-color:transparent;color:var(--bg);font-weight:600}
+.vbtn.accent:hover{background:var(--warm-bright)}
+.vcap-hint{font-size:11px;color:rgba(255,255,255,.5);text-align:center}
+.analysis-panel{display:flex;flex-direction:column;gap:14px}
+.status-bar{background:var(--bg-surface);border:1px solid rgba(0,0,0,.08);border-radius:10px;padding:13px 16px;display:flex;align-items:center;gap:12px}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.status-dot.idle{background:rgba(0,0,0,.18)}
+.status-dot.working{background:var(--accent);animation:blink 1s infinite}
+.status-dot.done{background:#a8c87a}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.status-text{font-size:12px;color:var(--text-faint);letter-spacing:.04em}
+.score-panel{background:var(--bg-surface);border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:22px}
+.score-panel-title{font-size:10px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--text-faint);margin-bottom:18px}
+.score-row{margin-bottom:14px}
+.score-row:last-child{margin-bottom:0}
+.score-label-row{display:flex;justify-content:space-between;margin-bottom:6px}
+.score-label{font-size:12px;color:var(--text-mid)}
+.score-val{font-family:var(--serif);font-size:18px;color:var(--accent)}
+.score-track{height:3px;background:rgba(0,0,0,.08);border-radius:3px;overflow:hidden}
+.score-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent-muted),var(--accent));width:0;transition:width 1.2s cubic-bezier(.22,1,.36,1)}
+.feedback-panel{background:var(--bg-surface);border:1px solid rgba(0,0,0,.08);border-radius:14px;overflow:hidden}
+.fb-tabs{display:flex;border-bottom:1px solid rgba(0,0,0,.08)}
+.fb-tab{flex:1;padding:12px 8px;text-align:center;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s}
+.fb-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.fb-tab:hover{color:var(--text-mid)}
+.fb-body{padding:22px}
+.fb-section{display:none}
+.fb-section.active{display:block}
+.fb-text{font-size:14px;font-weight:300;color:var(--text-mid);line-height:1.82}
+.fb-text p{margin-bottom:12px}
+.fb-text p:last-child{margin-bottom:0}
+.fb-text strong{color:var(--text);font-weight:500}
+.fb-text em{color:var(--accent);font-style:italic}
+.moment-item{display:flex;align-items:flex-start;gap:12px;padding:12px 13px;background:rgba(0,0,0,.02);border-radius:9px;border:1px solid rgba(0,0,0,.08);cursor:pointer;transition:border-color .2s;margin-bottom:8px}
+.moment-item:hover{border-color:var(--accent-border)}
+.moment-time{font-size:10px;font-weight:600;letter-spacing:.09em;color:var(--accent);background:var(--accent-pale);border-radius:5px;padding:3px 8px;flex-shrink:0;white-space:nowrap;margin-top:1px}
+.moment-desc{font-size:13px;font-weight:300;color:var(--text-mid);line-height:1.55}
+.action-row{display:flex;gap:8px}
+.act-btn{flex:1;padding:11px 14px;border-radius:9px;font-family:var(--sans);font-size:12px;font-weight:500;letter-spacing:.05em;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--border);background:rgba(0,0,0,.03);color:var(--text-mid)}
+.act-btn:hover{border-color:var(--accent-border);color:var(--accent)}
+.act-btn.save{background:var(--accent-pale);border-color:var(--accent-border);color:var(--accent)}
+.act-btn.save:hover{background:rgba(200,149,106,.2)}
+.act-btn.nc{background:var(--accent);border-color:transparent;color:#fff;font-weight:600}
+.act-btn.nc:hover{background:var(--warm-bright)}
+/* ── RIDER FEEDBACK WIDGET ── */
+.rider-fb-wrap{margin-top:14px;border-radius:14px;overflow:hidden;border:1px solid rgba(0,0,0,.08);background:var(--bg-surface);display:none}
+.rider-fb-wrap.visible{display:block}
+.rider-fb-header{padding:14px 18px;border-bottom:1px solid rgba(0,0,0,.07);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.rider-fb-header-left{display:flex;align-items:center;gap:10px}
+.rider-fb-eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+.rider-fb-sub{font-size:12px;color:var(--text-faint);margin-top:1px}
+.rider-fb-toggle{font-size:18px;color:var(--text-faint);transition:transform .2s;line-height:1}
+.rider-fb-toggle.open{transform:rotate(45deg)}
+.rider-fb-body{padding:20px;display:none}
+.rider-fb-body.open{display:block}
+.rfb-q{margin-bottom:18px}
+.rfb-label{font-size:12px;font-weight:500;color:var(--text);margin-bottom:10px;display:block}
+.rfb-options{display:flex;gap:8px;flex-wrap:wrap}
+.rfb-opt{padding:8px 16px;border-radius:999px;border:1px solid rgba(0,0,0,.1);background:transparent;font-family:var(--sans);font-size:12px;color:var(--text-mid);cursor:pointer;transition:all .2s}
+.rfb-opt:hover{border-color:var(--accent-border);color:var(--accent)}
+.rfb-opt.selected{background:var(--accent-pale);border-color:var(--accent-border);color:var(--accent);font-weight:500}
+.rfb-score-row{display:flex;gap:6px;flex-wrap:wrap}
+.rfb-score-btn{width:40px;height:40px;border-radius:9px;border:1px solid rgba(0,0,0,.1);background:transparent;font-family:var(--serif);font-size:17px;color:var(--text-mid);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.rfb-score-btn:hover{border-color:var(--accent-border);color:var(--accent)}
+.rfb-score-btn.selected{background:var(--accent-pale);border-color:var(--accent-border);color:var(--accent);font-weight:600}
+.rfb-textarea{width:100%;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:10px;padding:12px 14px;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:300;resize:none;outline:none;line-height:1.65;transition:border-color .2s;min-height:80px}
+.rfb-textarea::placeholder{color:var(--text-faint)}
+.rfb-textarea:focus{border-color:var(--accent-border)}
+.rfb-submit{width:100%;justify-content:center;margin-top:16px}
+.rfb-thanks{padding:20px;text-align:center;display:none}
+.rfb-thanks.visible{display:block}
+.rfb-thanks-title{font-family:var(--serif);font-size:20px;color:var(--text);margin-bottom:6px}
+.rfb-thanks-sub{font-size:13px;color:var(--text-mid);font-weight:300;line-height:1.6}
+/* ── DASHBOARD ── */
+#view-dashboard{padding-top:58px}
+.dash-wrap{max-width:1140px;margin:0 auto;padding:48px 36px}
+.dash-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:40px;flex-wrap:wrap;gap:16px}
+.dash-title{font-family:var(--serif);font-size:38px;font-weight:400;color:var(--text);line-height:1.1}
+.dash-title em{color:var(--accent);font-style:italic}
+.dash-sub{font-size:14px;font-weight:300;color:var(--text-mid);margin-top:6px}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:36px}
+.stat-card{background:var(--bg-surface);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:20px}
+.stat-label{font-size:10px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px}
+.stat-val{font-family:var(--serif);font-size:36px;font-weight:400;color:var(--accent);line-height:1}
+.stat-sub{font-size:12px;color:var(--text-faint);margin-top:4px}
+.filter-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.filter-lbl{font-size:11px;color:var(--text-faint);letter-spacing:.06em}
+.filter-btn{font-size:12px;padding:7px 16px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--text-mid);cursor:pointer;transition:all .2s;font-family:var(--sans)}
+.filter-btn:hover{border-color:var(--accent-border);color:var(--accent)}
+.filter-btn.active{background:var(--accent-pale);border-color:var(--accent-border);color:var(--accent)}
+.compare-toolbar{background:var(--accent-pale);border:1px solid var(--accent-border);border-radius:11px;padding:13px 18px;display:none;align-items:center;gap:14px;margin-bottom:20px}
+.compare-toolbar.visible{display:flex}
+.compare-toolbar-txt{font-size:13px;color:var(--text-mid);flex:1}
+.compare-toolbar-txt strong{color:var(--accent)}
+.analysis-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.acard{background:var(--bg-surface);border:1px solid rgba(0,0,0,.09);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .25s,transform .2s}
+.acard:hover{border-color:var(--accent-border);transform:translateY(-2px)}
+.acard.selected{border-color:var(--accent)}
+.acard-thumb{width:100%;height:148px;object-fit:cover;display:block;background:rgba(0,0,0,.3)}
+.acard-no-thumb{width:100%;height:148px;background:rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.1)}
+.acard-body{padding:17px}
+.acard-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.acard-horse{font-size:15px;font-weight:500;color:var(--text)}
+.acard-date{font-size:11px;color:var(--text-faint);white-space:nowrap}
+.acard-fence{font-size:12px;color:var(--text-mid);margin-bottom:14px}
+.acard-scores{display:flex;gap:16px;margin-bottom:14px}
+.acard-score{display:flex;flex-direction:column;gap:2px}
+.acard-score-lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint)}
+.acard-score-val{font-family:var(--serif);font-size:22px;color:var(--accent)}
+.acard-headline{font-size:12px;font-weight:300;color:var(--text-mid);line-height:1.5;border-top:1px solid rgba(0,0,0,.08);padding-top:12px}
+.acard-compare-row{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:11px;color:var(--text-faint);cursor:pointer;transition:color .2s;user-select:none}
+.acard-compare-row:hover{color:var(--accent)}
+.compare-cb{width:16px;height:16px;border-radius:4px;border:1px solid rgba(0,0,0,.15);background:rgba(0,0,0,.03);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.compare-cb.checked{background:var(--accent);border-color:var(--accent)}
+.dash-empty{grid-column:1/-1;text-align:center;padding:80px 24px}
+.dash-empty-icon{width:56px;height:56px;border-radius:50%;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.08);margin:0 auto 18px;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.12)}
+.dash-empty p{font-family:var(--serif);font-size:22px;color:var(--text-faint);margin-bottom:8px}
+.dash-empty span{font-size:13px;color:var(--text-faint)}
+.trend-section{margin-top:40px}
+.trend-title{font-size:10px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--text-faint);margin-bottom:16px}
+.trend-chart{background:var(--bg-surface);border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:24px;display:flex;gap:6px;align-items:flex-end;height:120px;position:relative}
+.trend-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.trend-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--accent),var(--accent-muted));min-height:4px;transition:height .5s ease;position:relative;cursor:pointer}
+.trend-bar:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg-surface);border:1px solid var(--accent-border);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--accent);white-space:nowrap;pointer-events:none}
+.trend-bar-label{font-size:10px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center}
+/* ── COMPARE ── */
+#view-compare{padding-top:58px}
+.compare-wrap{max-width:1100px;margin:0 auto;padding:48px 36px}
+.compare-header{display:flex;align-items:center;gap:16px;margin-bottom:28px}
+.compare-back{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;font-family:var(--sans)}
+.compare-back:hover{color:var(--accent)}
+.compare-page-title{font-family:var(--serif);font-size:30px;font-weight:400;color:var(--text)}
+.compare-page-title em{color:var(--accent);font-style:italic}
+.delta-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px}
+.delta-card{background:var(--bg-surface);border:1px solid rgba(0,0,0,.08);border-radius:11px;padding:16px 14px;text-align:center}
+.delta-dim{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px}
+.delta-vals{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:4px}
+.delta-a{font-family:var(--serif);font-size:20px;color:var(--text-faint)}
+.delta-arrow{font-size:13px;color:var(--text-faint)}
+.delta-b{font-family:var(--serif);font-size:20px;color:var(--accent)}
+.delta-change{font-size:12px;font-weight:500}
+.delta-change.up{color:#a8c87a}
+.delta-change.down{color:#e0846a}
+.delta-change.same{color:var(--text-faint)}
+.compare-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.compare-col{background:var(--bg-surface);border:1px solid rgba(0,0,0,.08);border-radius:14px;overflow:hidden}
+.compare-col.newer{border-color:var(--accent-border)}
+.compare-col-head{padding:15px 18px;border-bottom:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between}
+.compare-col-horse{font-size:14px;font-weight:500;color:var(--text)}
+.compare-col-meta{font-size:11px;color:var(--text-faint);margin-top:2px}
+.compare-col-tag{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:999px}
+.tag-baseline{background:rgba(0,0,0,.06);color:var(--text-mid)}
+.tag-latest{background:var(--accent-pale);color:var(--accent)}
+.compare-col-body{padding:20px}
+.compare-score-block{margin-bottom:14px}
+.compare-score-label{font-size:11px;color:var(--text-mid);margin-bottom:5px}
+.compare-score-num{font-family:var(--serif);font-size:22px;color:var(--accent);margin-bottom:4px}
+.compare-score-track{height:3px;background:rgba(0,0,0,.08);border-radius:3px}
+.compare-score-fill{height:100%;border-radius:3px;background:var(--accent);transition:width 1s ease}
+.compare-coaching-note{background:var(--accent-pale);border:1px solid var(--accent-border);border-radius:10px;padding:14px;margin-top:16px}
+.compare-coaching-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.compare-coaching-text{font-size:13px;font-weight:300;color:var(--text-mid);line-height:1.6}
+@media(max-width:860px){
+  nav{padding:0 18px}
+  .landing-wrap{grid-template-columns:1fr;gap:36px;padding:32px 20px}
+  .analysis-wrap{grid-template-columns:1fr}
+  .video-card{position:static}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .delta-row{grid-template-columns:1fr 1fr}
+  .compare-cols{grid-template-columns:1fr}
+  .dash-wrap,.compare-wrap{padding:32px 18px}
+}
+
+/* ── Responsive sizing ── */
+html{font-size:16px}
+@media(max-width:1100px){
+  .landing-wrap{padding:48px 28px;gap:48px}
+}
+@media(max-width:860px){
+  nav{padding:0 18px}
+  .nav-product{display:none}
+  .landing-wrap{grid-template-columns:1fr;gap:32px;padding:28px 20px;min-height:auto}
+  .landing-headline{font-size:clamp(34px,8vw,52px)}
+  .free-badge{font-size:18px}
+  .analysis-wrap{grid-template-columns:1fr;padding:16px;gap:16px}
+  .video-card{position:static}
+  .video-el{max-height:300px}
+  .vbtn-row{flex-wrap:wrap;gap:5px}
+  .vbtn{padding:6px 10px;font-size:11px}
+  .score-panel{padding:16px}
+  .score-panel-title{margin-bottom:12px}
+  .score-row{margin-bottom:10px}
+  .score-val{font-size:15px}
+  .fb-tab{font-size:10px;padding:10px 4px}
+  .fb-body{padding:16px}
+  .fb-text{font-size:13px}
+  .action-row{flex-wrap:wrap;gap:6px}
+  .act-btn{flex:1;min-width:calc(50% - 4px);font-size:11px;padding:10px 8px}
+  .stats-row{grid-template-columns:1fr 1fr;gap:10px}
+  .stat-card{padding:14px}
+  .stat-val{font-size:26px}
+  .analysis-grid{grid-template-columns:1fr}
+  .delta-row{grid-template-columns:1fr 1fr;gap:8px}
+  .compare-cols{grid-template-columns:1fr}
+  .dash-wrap,.compare-wrap{padding:20px 16px}
+  .dash-title,.compare-page-title{font-size:26px}
+  .dash-header{flex-direction:column;align-items:flex-start;gap:12px}
+  .payment-card{padding:28px 20px;margin:12px}
+  .payment-title{font-size:22px}
+  .payment-price .amount{font-size:38px}
+  .upload-card{padding:20px}
+  .meta-grid{grid-template-columns:1fr}
+  .meta-field.full{grid-column:1}
+  .filter-row{gap:6px}
+  .compare-toolbar{flex-wrap:wrap;gap:8px}
+  .rfb-score-row{flex-wrap:wrap;gap:5px}
+  .rfb-score-btn{min-width:36px;padding:6px 4px;font-size:13px}
+  .frame-strip{min-height:52px}
+  .frame-thumb{width:52px;height:36px}
+  .frame-add{width:52px;height:36px}
+  .analysis-panel{gap:10px}
+  .status-bar{padding:10px 14px}
+}
+@media(max-width:480px){
+  .landing-headline{font-size:clamp(28px,9vw,40px)}
+  .landing-sub{font-size:15px}
+  .analysis-wrap{padding:12px;gap:12px}
+  .vbtn{padding:5px 8px;font-size:10px}
+  .score-panel{padding:12px}
+  .score-val{font-size:14px}
+  .stats-row{grid-template-columns:1fr 1fr;gap:8px}
+  .stat-val{font-size:22px}
+  .stat-card{padding:12px}
+  .nav-free{display:none}
+  .payment-card{padding:24px 16px;margin:8px}
+  .payment-price .amount{font-size:32px}
+  .upload-card{padding:16px}
+  .free-banner{padding:14px 16px}
+  .value-list{gap:8px}
+  .acard-scores{gap:10px}
+  .acard-score-val{font-size:18px}
+}
+</style>
+</head>
+<body>
+<canvas id="cc"></canvas>
+
+<!-- Hidden Netlify Form — captures every analysis -->
+<form name="clip-analysis" netlify netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="clip-analysis">
+  <input name="bot-field">
+  <input name="email"><input name="horse"><input name="rider">
+  <input name="fence_type"><input name="level"><input name="event">
+  <input name="score_overall"><input name="score_approach">
+  <input name="score_bascule"><input name="score_rider"><input name="score_landing">
+  <input name="headline"><textarea name="technical"></textarea>
+  <textarea name="coaching"></textarea><input name="analysed_at">
+</form>
+<nav>
+  <a href="equine_data_verse.html" class="nav-brand">
+    <div class="nav-mark">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L8.8 5.5H13L9.5 8l1.5 4.5L7 10 3 12.5 4.5 8 1 5.5h4.2L7 1.5z" fill="rgba(200,149,106,.7)"/></svg>
+    </div>
+    <span class="nav-name">Equine Data <em>Verse</em></span>
+  </a>
+  <span class="nav-product">Equi Analyse</span>
+  <div class="nav-right">
+    <span class="nav-free" id="nav-free">First analysis free</span>
+    <a href="#" class="nav-link" onclick="showView('dashboard');return false;">My analyses</a>
+    <a href="index.html" class="nav-link">&#8592; Site</a>
+  </div>
+</nav>
+
+<!-- LANDING -->
+<div class="view active" id="view-landing">
+  <div class="landing-wrap">
+    <div>
+      <div class="eyebrow">Equi Analyse &middot; Cross-Country</div>
+      <h1 class="landing-headline">Your clip.<br>Scored. <em>Coached.</em><br>Remembered.</h1>
+      <p class="landing-sub">Load any cross-country clip, capture the moments that matter &mdash; takeoff, apex, landing &mdash; and get instant analysis that combines biomechanics scoring with real coaching feedback. Every analysis is saved so you can track improvement over time.</p>
+      <div class="free-banner">
+        <div class="free-badge">First one&rsquo;s on us.</div>
+        <div class="free-desc"><strong>Your first analysis is completely free.</strong><br>After that, $5 NZD per clip &mdash; less than a coffee.<br>Saved forever to your dashboard.</div>
+      </div>
+      <div class="value-list">
+        <div class="value-item"><div class="v-dot"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>5 technical scores &mdash; approach, bascule, rider position, landing, overall</div>
+        <div class="value-item"><div class="v-dot"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Coaching-voice feedback &mdash; what to train, not just what the frame shows</div>
+        <div class="value-item"><div class="v-dot"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>3 frames are the money shots &mdash; takeoff, bascule, landing. Shorter clips, better analysis.</div>
+        <div class="value-item"><div class="v-dot"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Dashboard + side-by-side comparison &mdash; see if training is working</div>
+      </div>
+    </div>
+    <div class="card upload-card">
+      <!-- File input sits OUTSIDE the styled zone so nothing clips it -->
+      <input type="file" id="file-input" accept="video/*" onchange="handleFile(event)" style="display:none">
+      <div class="upload-zone" id="upload-zone">
+        <div class="upload-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 14v2.5a2 2 0 002 2h12a2 2 0 002-2V14M7 10l4-4 4 4M11 6v10" stroke="rgba(160,96,48,.8)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="upload-label" id="upload-label">Load your clip</div>
+        <div class="upload-hint" id="upload-hint">MP4 &middot; MOV &middot; AVI</div>
+        <button type="button" onclick="document.getElementById('file-input').click()" style="margin-top:16px;background:var(--accent);color:#fff;font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:.06em;padding:9px 22px;border-radius:999px;border:none;cursor:pointer;">Browse files</button>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-field"><label class="meta-label">Horse</label><input class="meta-input" id="m-horse" type="text" placeholder="e.g. Mowgli"></div>
+        <div class="meta-field"><label class="meta-label">Rider</label><input class="meta-input" id="m-rider" type="text" placeholder="Your name"></div>
+        <div class="meta-field"><label class="meta-label">Fence type</label><select class="meta-select" id="m-fence"><option value="">Select...</option><option>Corner</option><option>Ditch</option><option>Drop</option><option>Hanging log</option><option>Keyhole</option><option>Oxer</option><option>Skinny</option><option>Step up/down</option><option>Table</option><option>Water</option><option>Other</option></select></div>
+        <div class="meta-field"><label class="meta-label">Level</label><select class="meta-select" id="m-level"><option value="">Select...</option><option>65cm</option><option>80cm</option><option>95cm</option><option>1.05m</option><option>1.10m (Pre-Training)</option><option>1.15m (Training)</option><option>1.20m (Modified)</option><option>CCI2*-S</option><option>CCI3*-S</option><option>CCI4*-S</option><option>CCI5*-L</option></select></div>
+        <div class="meta-field full"><label class="meta-label">Event / Location (optional)</label><input class="meta-input" id="m-event" type="text" placeholder="e.g. Puhinui 2025"></div>
+      </div>
+      <button class="btn-primary upload-submit" id="go-btn" onclick="goNext()" disabled>
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 7.5h11M8.5 3l4 4.5-4 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="go-label">Analyse &mdash; free</span>
+      </button>
+      <div class="history-link">Have clips already? <a href="#" onclick="showView('dashboard');return false;">Open your dashboard</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT -->
+<div class="view" id="view-payment">
+  <div class="payment-card">
+    <div class="payment-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="20" height="14" rx="2.5" stroke="rgba(200,149,106,.8)" stroke-width="1.3"/><path d="M2 11h20" stroke="rgba(200,149,106,.8)" stroke-width="1.3"/><path d="M6 15.5h4M16 15.5h2" stroke="rgba(200,149,106,.5)" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+    <h2 class="payment-title">One clip.<br><em>Full picture.</em></h2>
+    <p class="payment-sub">Technical scoring plus coaching-level feedback on what to actually do about it.</p>
+    <div class="payment-price"><span class="cur">$</span><span class="amount">5</span><span class="per">NZD per clip</span></div>
+    <div class="payment-items">
+      <div class="payment-item-lbl">What you get</div>
+      <div class="pay-item"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3 3 6-6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>5 technical dimension scores</div>
+      <div class="pay-item"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3 3 6-6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Technical + coaching feedback, separate tabs</div>
+      <div class="pay-item"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3 3 6-6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>3 money shots &mdash; takeoff, bascule, landing</div>
+      <div class="pay-item"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3 3 6-6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Saved to dashboard &mdash; compare over time</div>
+    </div>
+    <label class="pay-email-lbl">Your email &mdash; to save your analyses</label>
+    <input class="pay-email-input" type="email" id="pay-email" placeholder="you@example.com">
+    <button class="btn-primary pay-btn" id="pay-btn" onclick="processPayment()">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1" y="4" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M1 8h13" stroke="currentColor" stroke-width="1.2"/></svg>
+      Pay $5 NZD and analyse
+    </button>
+    <div class="pay-note"><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="1.5" y="4.5" width="8" height="5.5" rx="1" stroke="currentColor" stroke-width=".9"/><path d="M3.5 4.5V3a2 2 0 014 0v1.5" stroke="currentColor" stroke-width=".9"/></svg>Secure payment via Stripe</div>
+    <span class="demo-link" id="demo-btn" onclick="bypassPayment()" style="display:none">Continue in demo mode</span>
+    <span class="demo-link" onclick="showView('landing')" style="margin-top:2px;">&#8592; Back — select a different clip</span>
+  </div>
+</div>
+
+<!-- ANALYSIS -->
+<div class="view" id="view-analysis">
+  <div class="analysis-wrap">
+    <div>
+      <div class="video-card">
+        <video class="video-el" id="video-el" preload="auto"></video>
+        <div class="frame-strip" id="frame-strip"><div class="frame-add" onclick="captureFrame()">+</div></div>
+        <div class="video-controls">
+          <input type="range" class="scrubber" id="scrubber" min="0" max="100" value="0" step="0.1">
+          <div class="time-row"><span class="vtime" id="v-current">0:00</span><span class="vtime" id="v-duration">&mdash;</span></div>
+          <div class="vbtn-row">
+            <button class="vbtn" onclick="step(-0.5)">&#8249; 0.5s</button>
+            <button class="vbtn" onclick="togglePlay()" id="play-btn">&#9654; Play</button>
+            <button class="vbtn" onclick="step(0.5)">0.5s &#8250;</button>
+            <button class="vbtn" onclick="cycleSpeed()" id="speed-btn" style="margin-left:auto">1&times; speed</button>
+            <button class="vbtn accent" onclick="captureFrame()">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x=".5" y="2" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.1"/><circle cx="6" cy="6" r="2" stroke="currentColor" stroke-width="1.1"/></svg>
+              Capture frame
+            </button>
+            <button class="vbtn accent" onclick="analyseClip()" id="analyse-clip-btn" style="background:var(--accent-muted)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2.5l8 3.5-8 3.5V2.5z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg>
+              Analyse clip
+            </button>
+          </div>
+          <div class="vcap-hint" id="cap-hint">Capture 3 frames (takeoff, bascule, landing) — or use Analyse clip for movement analysis</div>
+        </div>
+      </div>
+    </div>
+    <div class="analysis-panel">
+      <div class="status-bar"><div class="status-dot idle" id="status-dot"></div><span class="status-text" id="status-text">Capture a frame to begin analysis</span></div>
+      <button id="retry-btn" class="btn-ghost" onclick="runAnalysis()" style="display:none;width:100%;justify-content:center;margin-top:-4px">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5A4.5 4.5 0 1110.5 4M10.5 1v3h-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Retry analysis
+      </button>
+      <div class="score-panel">
+        <div class="score-panel-title">Technical scores</div>
+        <div class="score-row"><div class="score-label-row"><span class="score-label">Approach &amp; rhythm</span><span class="score-val" id="sc-approach">&mdash;</span></div><div class="score-track"><div class="score-fill" id="sf-approach"></div></div></div>
+        <div class="score-row"><div class="score-label-row"><span class="score-label">Bascule quality</span><span class="score-val" id="sc-bascule">&mdash;</span></div><div class="score-track"><div class="score-fill" id="sf-bascule"></div></div></div>
+        <div class="score-row"><div class="score-label-row"><span class="score-label">Rider position</span><span class="score-val" id="sc-rider">&mdash;</span></div><div class="score-track"><div class="score-fill" id="sf-rider"></div></div></div>
+        <div class="score-row"><div class="score-label-row"><span class="score-label">Landing balance</span><span class="score-val" id="sc-landing">&mdash;</span></div><div class="score-track"><div class="score-fill" id="sf-landing"></div></div></div>
+        <div class="score-row"><div class="score-label-row"><span class="score-label">Overall effort</span><span class="score-val" id="sc-overall">&mdash;</span></div><div class="score-track"><div class="score-fill" id="sf-overall"></div></div></div>
+      </div>
+      <div class="feedback-panel">
+        <div class="fb-tabs">
+          <button class="fb-tab active" onclick="switchFbTab('technical')">Technical</button>
+          <button class="fb-tab" onclick="switchFbTab('coaching')">Coaching</button>
+          <button class="fb-tab" onclick="switchFbTab('moments')">Key moments</button>
+        </div>
+        <div class="fb-body">
+          <div class="fb-section active" id="tab-technical"><div class="fb-text" id="fb-technical"><div class="skel" style="height:12px;width:94%;margin-bottom:9px"></div><div class="skel" style="height:12px;width:78%;margin-bottom:9px"></div><div class="skel" style="height:12px;width:86%"></div></div></div>
+          <div class="fb-section" id="tab-coaching"><div class="fb-text" id="fb-coaching"><div class="skel" style="height:12px;width:90%;margin-bottom:9px"></div><div class="skel" style="height:12px;width:74%;margin-bottom:9px"></div><div class="skel" style="height:12px;width:82%"></div></div></div>
+          <div class="fb-section" id="tab-moments"><div id="fb-moments"><div class="skel" style="height:48px;border-radius:9px;margin-bottom:8px"></div><div class="skel" style="height:48px;border-radius:9px"></div></div></div>
+        </div>
+      </div>
+      <div class="action-row" id="action-row" style="display:none">
+        <button class="act-btn save" onclick="saveAnalysis()"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 9.5v-7h6.5l2.5 2.5v4.5H1.5z" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 9.5V7h5.5v2.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Save</button>
+        <button class="act-btn" onclick="showView('dashboard')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.1"/><rect x="7" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.1"/><rect x="1" y="7" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.1"/><rect x="7" y="7" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.1"/></svg>Dashboard</button>
+        <button class="act-btn nc" onclick="showView('landing')">+ New clip</button>
+      </div>
+
+      <!-- RIDER FEEDBACK WIDGET -->
+      <div class="rider-fb-wrap" id="rider-fb-wrap">
+        <div class="rider-fb-header" onclick="toggleRiderFb()">
+          <div class="rider-fb-header-left">
+            <div>
+              <div class="rider-fb-eyebrow">Your turn</div>
+              <div class="rider-fb-sub">Did this analysis feel right? Tell us — it makes the AI better.</div>
+            </div>
+          </div>
+          <div class="rider-fb-toggle" id="rfb-toggle">+</div>
+        </div>
+        <div class="rider-fb-body" id="rider-fb-body">
+          <!-- Q1: Agreed? -->
+          <div class="rfb-q">
+            <span class="rfb-label">Did the analysis match what you felt in the saddle?</span>
+            <div class="rfb-options">
+              <button class="rfb-opt" onclick="rfbSelect('agreed','yes',this)">Yes, spot on</button>
+              <button class="rfb-opt" onclick="rfbSelect('agreed','mostly',this)">Mostly yes</button>
+              <button class="rfb-opt" onclick="rfbSelect('agreed','partly',this)">Partly</button>
+              <button class="rfb-opt" onclick="rfbSelect('agreed','no',this)">Not really</button>
+            </div>
+          </div>
+          <!-- Q2: Their score -->
+          <div class="rfb-q">
+            <span class="rfb-label">What overall score would <em>you</em> give that jump?</span>
+            <div class="rfb-score-row" id="rfb-score-row">
+              <button class="rfb-score-btn" onclick="rfbScore(1,this)">1</button>
+              <button class="rfb-score-btn" onclick="rfbScore(2,this)">2</button>
+              <button class="rfb-score-btn" onclick="rfbScore(3,this)">3</button>
+              <button class="rfb-score-btn" onclick="rfbScore(4,this)">4</button>
+              <button class="rfb-score-btn" onclick="rfbScore(5,this)">5</button>
+              <button class="rfb-score-btn" onclick="rfbScore(6,this)">6</button>
+              <button class="rfb-score-btn" onclick="rfbScore(7,this)">7</button>
+              <button class="rfb-score-btn" onclick="rfbScore(8,this)">8</button>
+              <button class="rfb-score-btn" onclick="rfbScore(9,this)">9</button>
+              <button class="rfb-score-btn" onclick="rfbScore(10,this)">10</button>
+            </div>
+          </div>
+          <!-- Q3: Most useful -->
+          <div class="rfb-q">
+            <span class="rfb-label">Which part of the feedback was most useful?</span>
+            <div class="rfb-options">
+              <button class="rfb-opt" onclick="rfbSelect('useful','technical',this)">Technical scores</button>
+              <button class="rfb-opt" onclick="rfbSelect('useful','coaching',this)">Coaching advice</button>
+              <button class="rfb-opt" onclick="rfbSelect('useful','moments',this)">Key moments</button>
+              <button class="rfb-opt" onclick="rfbSelect('useful','none',this)">None of it</button>
+            </div>
+          </div>
+          <!-- Q4: Notes -->
+          <div class="rfb-q">
+            <span class="rfb-label">Anything the AI missed or got wrong? (optional)</span>
+            <textarea class="rfb-textarea" id="rfb-notes" placeholder="e.g. The horse actually drifted left on approach — the angle looked worse than it felt..."></textarea>
+          </div>
+          <button class="btn-primary rfb-submit" id="rfb-submit-btn" onclick="submitRiderFeedback()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Submit feedback
+          </button>
+        </div>
+        <div class="rfb-thanks" id="rfb-thanks">
+          <div class="rfb-thanks-title">Thank you.</div>
+          <div class="rfb-thanks-sub">Your feedback goes directly into training the analysis model.<br>Every response makes the next evaluation better.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="view" id="view-dashboard">
+  <div class="dash-wrap">
+    <div class="dash-header">
+      <div><h2 class="dash-title">Your <em>progress.</em></h2><p class="dash-sub">Every clip you've analysed on this device &mdash; track your horse, your technique, your improvement.</p></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn-ghost" onclick="exportData()" style="padding:11px 18px;font-size:12px">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v8M3 6l3.5 3.5L10 6M1.5 11h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Export data
+        </button>
+        <button class="btn-primary" onclick="showView('landing')" style="padding:12px 22px;font-size:13px"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 2v9M2 6.5h9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>New clip</button>
+      </div>;border:1px solid var(--accent-border);border-radius:12px;padding:16px 20px;margin-bottom:28px;display:flex;align-items:flex-start;gap:14px">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="flex-shrink:0;margin-top:1px"><circle cx="9" cy="9" r="7.5" stroke="var(--accent)" stroke-width="1.2"/><path d="M9 8v5M9 6h.01" stroke="var(--accent)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px">Your analyses are saved on this device</div>
+        <div style="font-size:12px;font-weight:300;color:var(--text-mid);line-height:1.6">While we're in early testing, your dashboard lives in this browser. Don't clear your browser data and you won't lose anything. Cross-device sync and permanent cloud accounts are coming &mdash; every analysis you run now will carry forward.</div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Analyses</div><div class="stat-val" id="stat-total">0</div><div class="stat-sub">clips evaluated</div></div>
+      <div class="stat-card"><div class="stat-label">Best overall</div><div class="stat-val" id="stat-best">&mdash;</div><div class="stat-sub">score recorded</div></div>
+      <div class="stat-card"><div class="stat-label">Latest overall</div><div class="stat-val" id="stat-latest">&mdash;</div><div class="stat-sub">most recent clip</div></div>
+      <div class="stat-card"><div class="stat-label">Avg bascule</div><div class="stat-val" id="stat-bascule">&mdash;</div><div class="stat-sub">across all clips</div></div>
+    </div>
+    <div class="compare-toolbar" id="compare-toolbar">
+      <span class="compare-toolbar-txt"><strong id="compare-count-txt">0 selected</strong> &mdash; choose exactly 2 to compare</span>
+      <button class="btn-primary" id="compare-go-btn" onclick="openCompare()" style="padding:10px 20px;font-size:12px" disabled>Compare</button>
+      <button class="btn-ghost" onclick="clearCompare()" style="padding:9px 16px;font-size:12px">Clear</button>
+    </div>
+    <div class="filter-row">
+      <span class="filter-lbl">Filter</span>
+      <button class="filter-btn active" onclick="setFilter('all',this)">All clips</button>
+      <button class="filter-btn" id="filter-horse-btn" style="display:none" onclick="setFilter('horse',this)"></button>
+    </div>
+    <div class="analysis-grid" id="dash-grid"></div>
+    <div class="trend-section" id="trend-section" style="display:none">
+      <div class="trend-title">Overall score trend &mdash; most recent 10 analyses</div>
+      <div class="trend-chart" id="trend-chart"></div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARE -->
+<div class="view" id="view-compare">
+  <div class="compare-wrap">
+    <div class="compare-header">
+      <button class="compare-back" onclick="showView('dashboard')"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L4 7l5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Back</button>
+      <h2 class="compare-page-title">Side by side <em>comparison.</em></h2>
+    </div>
+    <div class="delta-row" id="delta-row"></div>
+    <div class="compare-cols" id="compare-cols"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="toast-dot"></div><span id="toast-msg"></span></div>
+
+<script>
+const SUPABASE_URL='https://purftioxbgwawfatctjp.supabase.co';
+const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1cmZ0aW94Ymd3YXdmYXRjdGpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNzczNzEsImV4cCI6MjA5Njk1MzM3MX0.xUWcrrjG4yDAOaH6zx32Fs7OXGtKhs3eQy-XFQ0-G6E';
+let currentFile=null,capturedFrames=[],currentAnalysis=null,userEmail=null;
+let speedIdx=2;const SPEEDS=[0.25,0.5,1,1.5,2];
+let selectedIds=[],currentFilter='all';
+
+function isFirstFree(){return!localStorage.getItem('edv_first_used')}
+function markFirstUsed(){localStorage.setItem('edv_first_used','1')}
+
+function showView(n){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+n).classList.add('active');
+  window.scrollTo(0,0);
+  if(n==='dashboard')renderDashboard();
+}
+// Handle return from Stripe payment
+if(window.location.search.includes('paid=true')){
+  userEmail=localStorage.getItem('edv_pending_email')||'paid@edv.local';
+  localStorage.removeItem('edv_pending_email');
+  showToast('Payment confirmed \u2014 load your clip to begin.');
+}
+
+function updateGoLabel(){
+  const lbl=document.getElementById('go-label');
+  const badge=document.getElementById('nav-free');
+  if(isFirstFree()){lbl.textContent='Analyse \u2014 free';badge.style.display='';}
+  else{lbl.textContent='Analyse this clip \u2014 $5 NZD';badge.style.display='none';}
+}
+
+function handleFile(e){
+  const files = e.target.files;
+  if(!files||files.length===0){return;}
+  const f=files[0];
+  currentFile=f;
+  document.getElementById('go-btn').disabled=false;
+  document.getElementById('go-btn').style.opacity='1';
+  document.getElementById('upload-label').textContent=f.name;
+  document.getElementById('upload-hint').textContent=(f.size/1e6).toFixed(1)+' MB — ready';
+  document.getElementById('upload-zone').style.borderColor='var(--accent)';
+  document.getElementById('upload-zone').style.background='rgba(160,96,48,.14)';
+  showToast('✓ '+f.name+' loaded — click Analyse to continue');
+}
+// drag-drop handled in DOMContentLoaded above
+
+function goNext(){
+  if(!currentFile)return;
+  if(isFirstFree()){userEmail='free@edv.local';markFirstUsed();updateGoLabel();loadAndAnalyse();}
+  else showView('payment');
+}
+
+async function processPayment(){
+  const email=document.getElementById('pay-email').value.trim();
+  if(!email||!email.includes('@')){showToast('Please enter your email first.');return;}
+  userEmail=email;
+  localStorage.setItem('edv_pending_email',email);
+  window.location.href='https://buy.stripe.com/aFa7sKehZ0X5gGH2xc0co00?prefilled_email='+encodeURIComponent(email);
+}
+function bypassPayment(){
+  if(!currentFile){
+    showToast('Please go back and select a video clip first.');
+    setTimeout(()=>showView('landing'),1800);
+    return;
+  }
+  userEmail='demo@edv.local';
+  loadAndAnalyse();
+}
+
+function loadAndAnalyse(){
+  showView('analysis');
+  capturedFrames=[];
+  currentAnalysis=null;
+  window._lastAnalysisId=null;
+
+  // Reset the file input so the same file can be reselected
+  const fi=document.getElementById('file-input');
+  if(fi) fi.value='';
+
+  // Reset upload zone label for next time
+  document.getElementById('upload-label').textContent='Load your clip';
+  document.getElementById('upload-hint').textContent='MP4 \u00B7 MOV \u00B7 AVI';
+  document.getElementById('upload-zone').style.borderColor='';
+  document.getElementById('upload-zone').style.background='';
+  document.getElementById('go-btn').disabled=true;
+
+  // Reset frame strip
+  document.getElementById('frame-strip').innerHTML='<div class="frame-add" onclick="captureFrame()">+</div>';
+
+  const vid=document.getElementById('video-el');
+
+  // Fully tear down previous video
+  vid.pause();
+  vid.src='';
+  vid.load();
+
+  // Remove old timeupdate listener by cloning the element
+  const newVid=vid.cloneNode(false);
+  vid.parentNode.replaceChild(newVid,vid);
+  const v=document.getElementById('video-el');
+
+  // Show loading state
+  document.getElementById('status-dot').className='status-dot working';
+  document.getElementById('status-text').textContent='Loading video\u2026';
+  document.getElementById('action-row').style.display='none';
+  document.getElementById('rider-fb-wrap').classList.remove('visible');
+
+  // Reset rider feedback
+  const rfbBody=document.getElementById('rider-fb-body');
+  const rfbToggle=document.getElementById('rfb-toggle');
+  const rfbThanks=document.getElementById('rfb-thanks');
+  if(rfbBody){rfbBody.classList.remove('open');rfbBody.style.display='';}
+  if(rfbToggle){rfbToggle.style.display='';rfbToggle.classList.remove('open');}
+  if(rfbThanks) rfbThanks.classList.remove('visible');
+  document.querySelectorAll('.rfb-opt,.rfb-score-btn').forEach(b=>b.classList.remove('selected'));
+  const rfbNotes=document.getElementById('rfb-notes');
+  if(rfbNotes) rfbNotes.value='';
+
+  // Reset scores
+  resetScores();
+  ['fb-technical','fb-coaching'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='<div class="skel" style="height:12px;width:94%;margin-bottom:9px"></div><div class="skel" style="height:12px;width:78%"></div>';
+  });
+  const mom=document.getElementById('fb-moments');
+  if(mom) mom.innerHTML='<div class="skel" style="height:48px;border-radius:9px;margin-bottom:8px"></div><div class="skel" style="height:48px;border-radius:9px"></div>';
+
+  // Error handler
+  v.onerror=function(){
+    const codes={1:'Aborted',2:'Network error',3:'Decode error — try a different clip',4:'Format not supported — convert to MP4 first'};
+    const msg=codes[v.error?.code]||'Unknown error (code '+v.error?.code+')';
+    document.getElementById('status-dot').className='status-dot idle';
+    document.getElementById('status-text').textContent='Video failed: '+msg;
+    showToast('Could not load video: '+msg);
+  };
+
+  v.addEventListener('loadedmetadata',function(){
+    document.getElementById('v-duration').textContent=fmt(v.duration);
+    document.getElementById('scrubber').max=v.duration;
+    document.getElementById('scrubber').value=0;
+    document.getElementById('v-current').textContent='0:00';
+    document.getElementById('status-dot').className='status-dot done';
+    document.getElementById('status-text').textContent='Video loaded \u2014 scrub to a jump and capture a frame';
+  },{once:true});
+
+  v.addEventListener('timeupdate',function(){
+    document.getElementById('scrubber').value=v.currentTime;
+    document.getElementById('v-current').textContent=fmt(v.currentTime);
+  });
+
+  // Load the new file
+  try{
+    const objectUrl=URL.createObjectURL(currentFile);
+    v.src=objectUrl;
+    v.load();
+  }catch(err){
+    document.getElementById('status-dot').className='status-dot idle';
+    document.getElementById('status-text').textContent='Could not read file: '+err.message;
+    showToast('File error: '+err.message);
+  }
+}
+
+function togglePlay(){
+  const vid=document.getElementById('video-el');const btn=document.getElementById('play-btn');
+  if(vid.paused){vid.play();btn.textContent='\u23F8 Pause';}
+  else{vid.pause();btn.textContent='\u25B6 Play';}
+}
+function step(s){const vid=document.getElementById('video-el');vid.currentTime=Math.max(0,Math.min(vid.duration||0,vid.currentTime+s));}
+function cycleSpeed(){
+  speedIdx=(speedIdx+1)%SPEEDS.length;
+  document.getElementById('video-el').playbackRate=SPEEDS[speedIdx];
+  document.getElementById('speed-btn').textContent=SPEEDS[speedIdx]+'\xD7 speed';
+}
+// Safe DOM init — runs after full page parse
+document.addEventListener('DOMContentLoaded', function() {
+  // Scrubber
+  var scrubberEl = document.getElementById('scrubber');
+  if(scrubberEl) scrubberEl.addEventListener('input', function(){
+    var v = document.getElementById('video-el');
+    if(v) v.currentTime = parseFloat(this.value);
+  });
+
+  // Upload zone click + drag
+  var uzEl = document.getElementById('upload-zone');
+  if(uzEl) {
+    uzEl.addEventListener('click', function(e){
+      if(e.target.tagName !== 'BUTTON'){
+        document.getElementById('file-input').click();
+      }
+    });
+    uzEl.addEventListener('dragover', function(e){ e.preventDefault(); uzEl.classList.add('drag-over'); });
+    uzEl.addEventListener('dragleave', function(){ uzEl.classList.remove('drag-over'); });
+    uzEl.addEventListener('drop', function(e){
+      e.preventDefault(); uzEl.classList.remove('drag-over');
+      var f = e.dataTransfer.files[0];
+      if(f && f.type.startsWith('video/')){
+        currentFile = f;
+        document.getElementById('go-btn').disabled = false;
+        document.getElementById('go-btn').style.opacity = '1';
+        document.getElementById('upload-label').textContent = f.name;
+        document.getElementById('upload-hint').textContent = (f.size/1e6).toFixed(1) + ' MB — ready';
+        document.getElementById('upload-zone').style.borderColor = 'var(--accent)';
+        showToast('✓ ' + f.name + ' loaded — click Analyse to continue');
+      }
+    });
+  }
+
+  // Init label
+  updateGoLabel();
+});
+function fmt(s){const m=Math.floor(s/60),sec=Math.floor(s%60);return m+':'+String(sec).padStart(2,'0');}
+
+function captureFrame(){
+  if(capturedFrames.length>=3){showToast('3 frames captured \u2014 takeoff, bascule and landing are your money shots. Hit Analyse.');return;}
+  const vid=document.getElementById('video-el');
+  const canvas=document.getElementById('cc');
+
+  // Scale down aggressively to keep payload under 4MB
+  const maxW=480;
+  const ratio=Math.min(1, maxW/(vid.videoWidth||640));
+  canvas.width=Math.round((vid.videoWidth||640)*ratio);
+  canvas.height=Math.round((vid.videoHeight||360)*ratio);
+  canvas.getContext('2d').drawImage(vid,0,0,canvas.width,canvas.height);
+  const dataUrl=canvas.toDataURL('image/jpeg',0.4);
+  const ts=vid.currentTime;
+  capturedFrames.push({dataUrl,ts});
+  const strip=document.getElementById('frame-strip');
+  const img=document.createElement('img');
+  img.className='frame-thumb';img.src=dataUrl;img.title=fmt(ts);
+  img.onclick=()=>{
+    vid.currentTime=ts;
+    strip.querySelectorAll('.frame-thumb').forEach(f=>f.classList.remove('active'));
+    img.classList.add('active');
+  };
+  strip.insertBefore(img,strip.querySelector('.frame-add'));
+  document.getElementById('cap-hint').textContent=capturedFrames.length+' frame'+(capturedFrames.length>1?'s':'')+' captured';
+  showToast('Frame captured at '+fmt(ts));
+  document.getElementById('retry-btn').style.display='none';
+  runAnalysis();
+}
+
+async function runAnalysis(isMovement){
+  if(!capturedFrames.length){showToast('Capture a frame first');return;}
+  const dot=document.getElementById('status-dot'),txt=document.getElementById('status-text');
+  dot.className='status-dot working';
+  txt.textContent=(isMovement?'Running movement analysis':'Analysing '+capturedFrames.length+' frame'+(capturedFrames.length>1?'s':''))+'\u2026';
+  resetScores();
+  const meta=getMeta();
+  let patterns=[];
+  try{ patterns=await fetchLearningContext(meta.fence,meta.level)||[]; }catch(e){ patterns=[]; }
+  const content=[
+    {type:'text',text:buildPrompt(meta,patterns,isMovement)},
+    ...capturedFrames.map(f=>({type:'image',source:{type:'base64',media_type:'image/jpeg',data:f.dataUrl.split(',')[1]}}))
+  ];
+
+  // Check payload size before sending
+  const payloadStr=JSON.stringify({messages:[{role:'user',content}]});
+  const payloadMB=new Blob([payloadStr]).size/1024/1024;
+  console.log('Payload size:',payloadMB.toFixed(2)+'MB');
+  if(payloadMB>4){
+    dot.className='status-dot idle';
+    txt.textContent='Frames too large ('+payloadMB.toFixed(1)+'MB) — please use 1-2 frames only';
+    showToast('Too large — capture just 1 frame and try again');
+    return;
+  }
+  try{
+    const res=await fetch('/.netlify/functions/analyze',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:[{role:'user',content}]})
+    });
+    if(!res.ok){
+      const errData=await res.json().catch(()=>({error:'HTTP '+res.status}));
+      const msg=errData.error||('HTTP '+res.status);
+      dot.className='status-dot idle';
+      txt.textContent='Analysis failed: '+msg;
+      showToast('Error: '+msg);
+      console.error('Analysis error detail:',errData);
+      return;
+    }
+    const data=await res.json();
+    if(!data.content){
+      const msg=data.error||JSON.stringify(data).slice(0,120);
+      dot.className='status-dot idle';
+      txt.textContent='Analysis failed: '+msg;
+      showToast('Error: '+msg);
+      document.getElementById('retry-btn').style.display='inline-flex';
+      return;
+    }
+    const raw=data.content.find(b=>b.type==='text')?.text||'';
+    if(!raw){
+      dot.className='status-dot idle';
+      txt.textContent='Analysis failed: empty response — tap Retry';
+      document.getElementById('retry-btn').style.display='inline-flex';
+      showToast('Empty response — please retry');
+      return;
+    }
+    let parsed;
+    try{
+      parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    }catch(e){
+      // Try to extract JSON from anywhere in the response
+      const match=raw.match(/\{[\s\S]*\}/);
+      if(match){
+        try{ parsed=JSON.parse(match[0]); }
+        catch(e2){
+          dot.className='status-dot idle';
+          txt.textContent='Analysis failed: could not read AI response — tap Retry';
+          document.getElementById('retry-btn').style.display='inline-flex';
+          return;
+        }
+      } else {
+        dot.className='status-dot idle';
+        txt.textContent='Analysis failed: unexpected response format — tap Retry';
+        document.getElementById('retry-btn').style.display='inline-flex';
+        return;
+      }
+    }
+    currentAnalysis=parsed;
+    renderAnalysis(currentAnalysis);
+    dot.className='status-dot done';
+    const frameNote=data._fallback?' \u00B7 estimated from metadata':'';
+    txt.textContent='Analysis complete \u00B7 '+capturedFrames.length+' frame'+(capturedFrames.length>1?'s':'')+' evaluated'+frameNote;
+    if(data._fallback) showToast('\u26A0 Analysis estimated — image processing was slow. Scores are approximate.');
+    document.getElementById('action-row').style.display='flex';
+    document.getElementById('rider-fb-wrap').classList.add('visible');
+    document.getElementById('retry-btn').style.display='none';
+    try{ await pushSupabase(currentAnalysis,meta); }catch(e){ console.warn('Supabase save failed:',e); }
+  }catch(e){
+    dot.className='status-dot idle';
+    txt.textContent='Analysis failed: '+e.message;
+    showToast('Error: '+e.message);
+    console.error('runAnalysis error:',e);
+  }
+}
+
+async function analyseClip(){
+  const vid=document.getElementById('video-el');
+  if(!vid.src||vid.readyState<2){
+    showToast('Video not ready — wait for it to load fully');return;
+  }
+  if(vid.duration>30){
+    showToast('Clip too long for movement analysis — scrub to the jump first and use frame capture instead');return;
+  }
+
+  const dot=document.getElementById('status-dot');
+  const txt=document.getElementById('status-text');
+  dot.className='status-dot working';
+  txt.textContent='Capturing jump sequence\u2026';
+  document.getElementById('retry-btn').style.display='none';
+
+  // Auto-capture 5 frames spread across the clip duration
+  // Covers: run-up, takeoff, mid-flight (bascule), descent, landing
+  const duration=vid.duration;
+  const positions=[0.15, 0.3, 0.5, 0.7, 0.88];
+  const frames=[];
+  const canvas=document.getElementById('cc');
+  const strip=document.getElementById('frame-strip');
+  strip.innerHTML='';
+
+  for(let i=0;i<positions.length;i++){
+    const t=duration*positions[i];
+    await new Promise(resolve=>{
+      vid.currentTime=t;
+      vid.onseeked=resolve;
+    });
+    await new Promise(r=>setTimeout(r,80));
+
+    const maxW=480;
+    const ratio=Math.min(1,maxW/(vid.videoWidth||640));
+    canvas.width=Math.round((vid.videoWidth||640)*ratio);
+    canvas.height=Math.round((vid.videoHeight||360)*ratio);
+    canvas.getContext('2d').drawImage(vid,0,0,canvas.width,canvas.height);
+    const dataUrl=canvas.toDataURL('image/jpeg',0.4);
+    frames.push({dataUrl,ts:t});
+
+    // Show thumbnail
+    const img=document.createElement('img');
+    img.className='frame-thumb';img.src=dataUrl;img.title=fmt(t);
+    strip.appendChild(img);
+    txt.textContent='Captured frame '+(i+1)+' of '+positions.length+'\u2026';
+  }
+
+  // Add + button
+  const addBtn=document.createElement('div');
+  addBtn.className='frame-add';addBtn.textContent='+';
+  addBtn.onclick=captureFrame;
+  strip.appendChild(addBtn);
+
+  capturedFrames=frames;
+  document.getElementById('cap-hint').textContent=frames.length+' frames captured across full jump sequence';
+  showToast('Jump sequence captured \u2014 running movement analysis\u2026');
+
+  // Run analysis with movement-aware prompt
+  await runAnalysis(true);
+}
+
+function buildPrompt(meta, patterns, isMovement){
+  const movementNote = isMovement
+    ? `These ${capturedFrames.length} frames are sequential captures spread across the entire jump — approach through landing. Analyse the MOVEMENT and progression: approach rhythm and line, takeoff timing, scope and bascule quality at mid-flight, landing balance and recovery. Identify any chipping (adding strides), rushing, drifting, or loss of rhythm. Score each phase based on what you can see across the sequence.`
+    : `These ${capturedFrames.length} frame(s) are specific moments captured by the rider. Analyse what is visible in each frame.`;
+
+  return `You are an expert equestrian analyst and cross-country coach. Analyse these ${capturedFrames.length} frame(s).
+Horse: ${meta.horse} | Rider: ${meta.rider} | Fence: ${meta.fence} | Level: ${meta.level}${meta.event?' | Event: '+meta.event:''}
+
+${movementNote}
+
+Respond with ONLY this exact JSON, no other text, no markdown:
+{"scores":{"approach":<number 1-10 or null if not visible>,"bascule":<number 1-10 or null if not visible>,"rider":<number 1-10 or null if not visible>,"landing":<number 1-10 or null if not visible>,"overall":<number 1-10>},"technical":"<2 paragraphs: horse outline, stride pattern, rider alignment, fence relationship>","coaching":"<2 paragraphs: direct coaching voice, what to train, the one most important thing to fix>","moments":[{"label":"<phase e.g. Approach/Takeoff/Mid-flight/Landing>","note":"<one specific actionable observation>"}],"headline":"<single sentence: the most important thing about this effort>"}`;
+}
+function renderAnalysis(a){
+  ['approach','bascule','rider','landing','overall'].forEach(d=>{
+    const v=a.scores?.[d];
+    document.getElementById('sc-'+d).textContent=v!=null?v+'/10':'\u2014';
+    if(v!=null)setTimeout(()=>{document.getElementById('sf-'+d).style.width=(v*10)+'%';},80);
+  });
+  document.getElementById('fb-technical').innerHTML=a.technical||'<p>\u2014</p>';
+  document.getElementById('fb-technical').className='fb-text';
+  document.getElementById('fb-coaching').innerHTML=a.coaching||'<p>\u2014</p>';
+  document.getElementById('fb-coaching').className='fb-text';
+  const mom=document.getElementById('fb-moments');mom.innerHTML='';
+  (a.moments||[]).forEach(m=>{
+    const el=document.createElement('div');el.className='moment-item';
+    el.innerHTML=`<span class="moment-time">${m.label}</span><span class="moment-desc">${m.note}</span>`;
+    mom.appendChild(el);
+  });
+}
+function resetScores(){['approach','bascule','rider','landing','overall'].forEach(d=>{document.getElementById('sc-'+d).textContent='\u2014';document.getElementById('sf-'+d).style.width='0';});}
+function resetPanel(){
+  resetScores();
+  document.getElementById('status-dot').className='status-dot idle';
+  document.getElementById('status-text').textContent='Capture a frame to begin analysis';
+  document.getElementById('action-row').style.display='none';
+  // Reset rider feedback widget
+  const rfbWrap=document.getElementById('rider-fb-wrap');
+  rfbWrap.classList.remove('visible');
+  document.getElementById('rider-fb-body').classList.remove('open');
+  document.getElementById('rider-fb-body').style.display='';
+  document.getElementById('rfb-toggle').style.display='';
+  document.getElementById('rfb-thanks').classList.remove('visible');
+  rfbState.agreed=null;rfbState.score=null;rfbState.useful=null;
+  document.querySelectorAll('.rfb-opt,.rfb-score-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('rfb-notes').value='';
+  document.getElementById('fb-technical').innerHTML='<div class="skel" style="height:12px;width:94%;margin-bottom:9px"></div><div class="skel" style="height:12px;width:78%"></div>';
+  document.getElementById('fb-coaching').innerHTML='<div class="skel" style="height:12px;width:90%;margin-bottom:9px"></div><div class="skel" style="height:12px;width:74%"></div>';
+  document.getElementById('fb-moments').innerHTML='<div class="skel" style="height:48px;border-radius:9px;margin-bottom:8px"></div><div class="skel" style="height:48px;border-radius:9px"></div>';
+}
+function switchFbTab(name){
+  document.querySelectorAll('.fb-tab').forEach((t,i)=>t.classList.toggle('active',['technical','coaching','moments'][i]===name));
+  document.querySelectorAll('.fb-section').forEach((s,i)=>s.classList.toggle('active',['technical','coaching','moments'][i]===name));
+}
+function getMeta(){return{horse:document.getElementById('m-horse').value||'Unknown',rider:document.getElementById('m-rider').value||'Unknown',fence:document.getElementById('m-fence').value||'',level:document.getElementById('m-level').value||'',event:document.getElementById('m-event').value||''};}
+
+async function saveAnalysis(){
+  if(!currentAnalysis)return;
+  const meta=getMeta();
+  const rec={id:'ea_'+Date.now(),date:new Date().toISOString(),meta,scores:currentAnalysis.scores,technical:currentAnalysis.technical,coaching:currentAnalysis.coaching,moments:currentAnalysis.moments,headline:currentAnalysis.headline,thumb:capturedFrames[0]?.dataUrl||null,frameCount:capturedFrames.length,email:userEmail};
+  const h=getHistory();h.unshift(rec);
+  localStorage.setItem('edv_analyses',JSON.stringify(h.slice(0,50)));
+  showToast('Saved to your dashboard.');
+  const btn=document.querySelector('.act-btn.save');if(btn){btn.textContent='Saved \u2713';btn.disabled=true;}
+}
+async function pushSupabase(a,meta){
+  try{
+    const params=new URLSearchParams();
+    params.append('form-name','clip-analysis');
+    params.append('email',userEmail||'');
+    params.append('horse',meta.horse||'');
+    params.append('rider',meta.rider||'');
+    params.append('fence_type',meta.fence||'');
+    params.append('level',meta.level||'');
+    params.append('event',meta.event||'');
+    params.append('score_overall',String(a.scores?.overall||''));
+    params.append('score_approach',String(a.scores?.approach||''));
+    params.append('score_bascule',String(a.scores?.bascule||''));
+    params.append('score_rider',String(a.scores?.rider||''));
+    params.append('score_landing',String(a.scores?.landing||''));
+    params.append('headline',a.headline||'');
+    params.append('technical',(a.technical||'').replace(/<[^>]*>/g,''));
+    params.append('coaching',(a.coaching||'').replace(/<[^>]*>/g,''));
+    params.append('analysed_at',new Date().toISOString());
+
+    const res=await fetch('/equi_analyse.html',{
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:params.toString()
+    });
+    if(res.ok){
+      showToast('\u2713 Analysis saved');
+      console.log('Netlify Forms save OK');
+    }else{
+      console.warn('Form save failed:',res.status,await res.text().catch(()=>''));
+    }
+  }catch(e){
+    console.warn('Save error:',e.message);
+  }
+}
+
+// ── Rider feedback ──
+const rfbState={agreed:null,score:null,useful:null};
+
+function toggleRiderFb(){
+  const body=document.getElementById('rider-fb-body');
+  const toggle=document.getElementById('rfb-toggle');
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  toggle.classList.toggle('open',!isOpen);
+}
+
+function rfbSelect(field,val,btn){
+  rfbState[field]=val;
+  btn.closest('.rfb-options').querySelectorAll('.rfb-opt').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function rfbScore(n,btn){
+  rfbState.score=n;
+  document.querySelectorAll('.rfb-score-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+async function submitRiderFeedback(){
+  const notes=document.getElementById('rfb-notes').value.trim();
+  const meta=getMeta();
+  const aiScore=currentAnalysis?.scores?.overall||null;
+  const scoreDelta=rfbState.score&&aiScore?rfbState.score-aiScore:null;
+
+  const fbRecord={
+    analysis_id:window._lastAnalysisId||null,
+    email:userEmail,
+    agreed_with_score:rfbState.agreed==='yes'||rfbState.agreed==='mostly',
+    rider_score:rfbState.score,
+    rider_notes:notes||null,
+    most_useful:rfbState.useful,
+    least_useful:null,
+    fence_type:meta.fence,
+    level:meta.level
+  };
+
+  const patternRecord={
+    analysis_id:window._lastAnalysisId||null,
+    fence_type:meta.fence,
+    level:meta.level,
+    ai_score:aiScore,
+    rider_score:rfbState.score,
+    score_delta:scoreDelta,
+    rider_notes:notes||null
+  };
+
+  // Save to localStorage so dashboard can show it
+  const hist=getHistory();
+  if(hist[0]&&window._lastAnalysisId){
+    hist[0].riderFeedback=fbRecord;
+    localStorage.setItem('edv_analyses',JSON.stringify(hist));
+  }
+
+  // Save locally only - Supabase via browser blocked by network restriction
+  // Will save via server-side function once analysis save is confirmed working
+  console.log('Rider feedback saved locally:', fbRecord);
+
+  // Show thank you
+  document.getElementById('rider-fb-body').classList.remove('open');
+  document.getElementById('rider-fb-body').style.display='none';
+  document.getElementById('rfb-toggle').style.display='none';
+  document.getElementById('rfb-thanks').classList.add('visible');
+  showToast('Feedback saved \u2014 thank you.');
+}
+
+// Secret demo reveal — type EDV on payment screen
+(function(){
+  const secret='edv';let buf='';
+  document.addEventListener('keydown',function(e){
+    buf=(buf+e.key.toLowerCase()).slice(-secret.length);
+    if(buf===secret){
+      const btn=document.getElementById('demo-btn');
+      if(btn){btn.style.display='block';showToast('Demo mode unlocked \uD83E\uDD1A');}
+    }
+  });
+})();
+
+// Learning context disabled until Supabase network restriction resolved
+async function fetchLearningContext(fence,level){
+  return [];
+}
+
+function exportData(){
+  const history=getHistory();
+  if(!history.length){showToast('No analyses to export yet.');return;}
+  const exportData=history.map(r=>({
+    date:r.date,
+    horse:r.meta?.horse,
+    rider:r.meta?.rider,
+    fence:r.meta?.fence,
+    level:r.meta?.level,
+    event:r.meta?.event,
+    overall:r.scores?.overall,
+    approach:r.scores?.approach,
+    bascule:r.scores?.bascule,
+    rider_score:r.scores?.rider,
+    landing:r.scores?.landing,
+    headline:r.headline,
+    coaching:r.coaching?.replace(/<[^>]*>/g,'')
+  }));
+  const json=JSON.stringify(exportData,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='equi-analyse-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(url);
+  showToast('Data exported \u2014 keep this file safe.');
+}
+
+function getHistory(){try{return JSON.parse(localStorage.getItem('edv_analyses')||'[]');}catch{return[];}}
+
+function renderDashboard(){
+  const history=getHistory();selectedIds=[];updateCompareToolbar();
+  document.getElementById('stat-total').textContent=history.length;
+  if(history.length){
+    const ov=history.map(r=>r.scores?.overall).filter(Boolean);
+    document.getElementById('stat-best').textContent=ov.length?Math.max(...ov):'\u2014';
+    document.getElementById('stat-latest').textContent=history[0].scores?.overall??'\u2014';
+    const bas=history.map(r=>r.scores?.bascule).filter(Boolean);
+    document.getElementById('stat-bascule').textContent=bas.length?(bas.reduce((a,b)=>a+b,0)/bas.length).toFixed(1):'\u2014';
+  }
+  const horses=[...new Set(history.map(r=>r.meta?.horse).filter(Boolean))];
+  const hBtn=document.getElementById('filter-horse-btn');
+  if(horses.length===1){hBtn.style.display='';hBtn.textContent=horses[0];}
+  else hBtn.style.display='none';
+  const grid=document.getElementById('dash-grid');grid.innerHTML='';
+  const filtered=currentFilter==='all'?history:history.filter(r=>r.meta?.horse===currentFilter);
+  if(!filtered.length){
+    grid.innerHTML='<div class="dash-empty"><div class="dash-empty-icon"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="3" y="5" width="20" height="16" rx="3" stroke="currentColor" stroke-width="1.3"/><path d="M10 11l3-3 3 3M13 8v6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><p>No analyses yet.</p><span>Upload your first clip to get started.</span></div>';
+    document.getElementById('trend-section').style.display='none';return;
+  }
+  filtered.forEach(r=>{
+    const card=document.createElement('div');card.className='acard';
+    const dateFmt=new Date(r.date).toLocaleDateString('en-NZ',{day:'numeric',month:'short',year:'2-digit'});
+    const fenceMeta=[r.meta?.fence,r.meta?.level,r.meta?.event].filter(Boolean).join(' \u00B7 ');
+    card.innerHTML=`${r.thumb?`<img class="acard-thumb" src="${r.thumb}" alt="">`:'<div class="acard-no-thumb"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="3" y="5" width="22" height="18" rx="3" stroke="currentColor" stroke-width="1.2"/><path d="M11 10.5l7 3.5-7 3.5V10.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></div>'}
+<div class="acard-body"><div class="acard-top"><span class="acard-horse">${r.meta?.horse||'Unknown'}</span><span class="acard-date">${dateFmt}</span></div><div class="acard-fence">${fenceMeta||'No details'}</div><div class="acard-scores"><div class="acard-score"><span class="acard-score-lbl">Overall</span><span class="acard-score-val">${r.scores?.overall??'\u2014'}</span></div><div class="acard-score"><span class="acard-score-lbl">Bascule</span><span class="acard-score-val">${r.scores?.bascule??'\u2014'}</span></div><div class="acard-score"><span class="acard-score-lbl">Rider</span><span class="acard-score-val">${r.scores?.rider??'\u2014'}</span></div></div>${r.headline?`<div class="acard-headline">${r.headline}</div>`:''}<div class="acard-compare-row" onclick="toggleSelect('${r.id}',this)"><div class="compare-cb" id="cb-${r.id}"></div>Select to compare</div></div>`;
+    card.querySelector('.acard-thumb,.acard-no-thumb')?.addEventListener('click',()=>openRecord(r));
+    grid.appendChild(card);
+  });
+  renderTrend(filtered.slice(0,10).reverse());
+}
+function setFilter(f,btn){
+  currentFilter=f==='horse'?btn.textContent:'all';
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderDashboard();
+}
+function renderTrend(records){
+  const sec=document.getElementById('trend-section');
+  if(records.length<2){sec.style.display='none';return;}
+  sec.style.display='';
+  const chart=document.getElementById('trend-chart');chart.innerHTML='';
+  const max=Math.max(...records.map(r=>r.scores?.overall||0));
+  records.forEach(r=>{
+    const v=r.scores?.overall||0;const pct=max?(v/max)*100:0;
+    const lbl=new Date(r.date).toLocaleDateString('en-NZ',{day:'numeric',month:'short'});
+    const wrap=document.createElement('div');wrap.className='trend-bar-wrap';
+    wrap.innerHTML=`<div class="trend-bar" style="height:${pct}%" data-tip="${r.meta?.horse||''} \u00B7 ${v}/10 \u00B7 ${lbl}"></div><div class="trend-bar-label">${r.meta?.horse?.slice(0,6)||lbl}</div>`;
+    chart.appendChild(wrap);
+  });
+}
+function openRecord(r){
+  currentAnalysis={scores:r.scores,technical:r.technical,coaching:r.coaching,moments:r.moments,headline:r.headline};
+  showView('analysis');
+  ['horse','rider','fence','level','event'].forEach(k=>document.getElementById('m-'+k).value=r.meta?.[k]||'');
+  document.getElementById('video-el').src='';
+  if(r.thumb)document.getElementById('video-el').poster=r.thumb;
+  document.getElementById('status-dot').className='status-dot done';
+  document.getElementById('status-text').textContent='Loaded from history \u00B7 '+new Date(r.date).toLocaleDateString('en-NZ',{day:'numeric',month:'short',year:'numeric'});
+  renderAnalysis(currentAnalysis);
+  document.getElementById('action-row').style.display='flex';
+}
+function toggleSelect(id,row){
+  const cb=document.getElementById('cb-'+id);const idx=selectedIds.indexOf(id);
+  if(idx===-1){
+    if(selectedIds.length>=2){showToast('Select exactly 2 to compare.');return;}
+    selectedIds.push(id);cb.classList.add('checked');
+    cb.innerHTML='<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>';
+  }else{selectedIds.splice(idx,1);cb.classList.remove('checked');cb.innerHTML='';}
+  updateCompareToolbar();
+}
+function updateCompareToolbar(){
+  const bar=document.getElementById('compare-toolbar');const btn=document.getElementById('compare-go-btn');
+  bar.classList.toggle('visible',selectedIds.length>0);
+  document.getElementById('compare-count-txt').textContent=selectedIds.length+' selected';
+  btn.disabled=selectedIds.length!==2;
+}
+function clearCompare(){
+  selectedIds=[];
+  document.querySelectorAll('.compare-cb').forEach(cb=>{cb.classList.remove('checked');cb.innerHTML='';});
+  updateCompareToolbar();
+}
+function openCompare(){
+  if(selectedIds.length!==2)return;
+  const hist=getHistory();
+  const a=hist.find(r=>r.id===selectedIds[0]);const b=hist.find(r=>r.id===selectedIds[1]);
+  if(!a||!b)return;
+  const[older,newer]=new Date(a.date)<new Date(b.date)?[a,b]:[b,a];
+  renderCompare(older,newer);showView('compare');
+}
+function renderCompare(older,newer){
+  const dims=[{key:'approach',label:'Approach'},{key:'bascule',label:'Bascule'},{key:'rider',label:'Rider'},{key:'landing',label:'Landing'},{key:'overall',label:'Overall'}];
+  const deltaRow=document.getElementById('delta-row');deltaRow.innerHTML='';
+  dims.forEach(d=>{
+    const a=older.scores?.[d.key]??0;const b=newer.scores?.[d.key]??0;const diff=b-a;
+    const cls=diff>0?'up':diff<0?'down':'same';
+    const txt=diff>0?'+'+diff:diff<0?String(diff):'\u2014';
+    const card=document.createElement('div');card.className='delta-card';
+    card.innerHTML=`<div class="delta-dim">${d.label}</div><div class="delta-vals"><span class="delta-a">${a||'\u2014'}</span><span class="delta-arrow">\u2192</span><span class="delta-b">${b||'\u2014'}</span></div><div class="delta-change ${cls}">${txt}</div>`;
+    deltaRow.appendChild(card);
+  });
+  const cols=document.getElementById('compare-cols');cols.innerHTML='';
+  [{r:older,tag:'Baseline',tc:'tag-baseline'},{r:newer,tag:'Latest',tc:'tag-latest'}].forEach(({r,tag,tc})=>{
+    const col=document.createElement('div');col.className='compare-col'+(tc==='tag-latest'?' newer':'');
+    const df=new Date(r.date).toLocaleDateString('en-NZ',{day:'numeric',month:'short',year:'numeric'});
+    const fm=[r.meta?.fence,r.meta?.level].filter(Boolean).join(' \u00B7 ');
+    const blocks=dims.map(d=>{const v=r.scores?.[d.key]??0;return`<div class="compare-score-block"><div class="compare-score-label">${d.label}</div><div class="compare-score-num">${v||'\u2014'}</div><div class="compare-score-track"><div class="compare-score-fill" style="width:${v*10}%"></div></div></div>`;}).join('');
+    col.innerHTML=`${r.thumb?`<img src="${r.thumb}" style="width:100%;height:150px;object-fit:cover;display:block">`:''}
+<div class="compare-col-head"><div><div class="compare-col-horse">${r.meta?.horse||'Unknown'} \u00B7 ${fm||'No fence data'}</div><div class="compare-col-meta">${df}${r.meta?.event?' \u00B7 '+r.meta.event:''}</div></div><span class="compare-col-tag ${tc}">${tag}</span></div>
+<div class="compare-col-body">${blocks}<div class="compare-coaching-note"><div class="compare-coaching-label">Key note</div><div class="compare-coaching-text">${r.headline||'No summary recorded.'}</div></div></div>`;
+    cols.appendChild(col);
+  });
+}
+function showToast(msg){
+  const t=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3600);
+}
+</script>
+</body>
+</html>
