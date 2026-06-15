@@ -1,6 +1,7 @@
 [build]
-  publish = "."
-  functions = "netlify/functions"
+  base = "EDV Site"
+  publish = "EDV Site"
+  functions = "EDV Site/netlify/functions"
 
 [functions."analyze"]
   timeout = 26
